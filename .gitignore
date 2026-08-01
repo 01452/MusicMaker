@@ -10,4 +10,5 @@ ffmpeg.zip
 ffmpeg-extracted/
 release/
 release-artifact/
+release-artifact-*/
 MusicMaker-Windows-x64*.zip
