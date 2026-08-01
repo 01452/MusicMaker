@@ -333,7 +333,16 @@ class MainWindow(QMainWindow):
         self._save_preferences(); self._refresh_recent_menu()
         self.worker = EncoderWorker(ffmpeg, image, audio, output, audio_info.duration, options)
         self.worker.progress.connect(self._on_progress); self.worker.completed.connect(self._on_completed); self.worker.failed.connect(self._on_failed); self.worker.cancelled.connect(self._on_cancelled)
-        self.started_at = time.monotonic(); self.start_button.setVisible(False); self.cancel_button.setVisible(True); self.status_label.setText("Идёт создание видео…"); self._update_start_state(); self.worker.start()
+        effect_names = []
+        if self.ken_burns.isChecked(): effect_names.append("Кен Бёрнс")
+        if self.fade_in.isChecked(): effect_names.append("появление")
+        if self.fade_out.isChecked(): effect_names.append("исчезновение")
+        if self.auto_sharpen.isChecked(): effect_names.append("резкость")
+        if self.film_grain.isChecked(): effect_names.append("зерно")
+        if self.vignette.isChecked(): effect_names.append("виньетка")
+        if self.glow.isChecked(): effect_names.append("свечение")
+        effect_summary = ", ".join(effect_names) if effect_names else "без эффектов"
+        self.started_at = time.monotonic(); self.start_button.setVisible(False); self.cancel_button.setVisible(True); self.status_label.setText(f"Создание видео… Эффекты: {effect_summary}"); self._update_start_state(); self.worker.start()
 
     def _cancel_encoding(self) -> None:
         if self.worker: self.worker.cancel(); self.status_label.setText("Отмена…")

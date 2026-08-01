@@ -85,16 +85,16 @@ class FFmpegCommandBuilder:
             if movement == "Random":
                 movement = random.choice(("Zoom In", "Zoom Out", "Pan Left", "Pan Right"))
             progress = f"on/{total_frames}"
-            zoom = "1+0.18*" + progress
+            zoom = "1+0.35*" + progress
             pan_x = "(iw-iw/zoom)*0.50"
             pan_y = "(ih-ih/zoom)*0.50"
             if movement == "Zoom Out":
-                zoom = "1.18-0.18*" + progress
+                zoom = "1.35-0.35*" + progress
             elif movement == "Pan Left":
-                zoom = "1.12"
+                zoom = "1.20"
                 pan_x = f"(iw-iw/zoom)*(1-{progress})"
             elif movement == "Pan Right":
-                zoom = "1.12"
+                zoom = "1.20"
                 pan_x = f"(iw-iw/zoom)*{progress}"
             filters.append(
                 f"scale={options.width * 2}:{options.height * 2}:force_original_aspect_ratio=increase,"
@@ -103,18 +103,18 @@ class FFmpegCommandBuilder:
         else:
             filters.append(base)
         if options.auto_sharpen:
-            filters.append("unsharp=5:5:0.35:5:5:0")
+            filters.append("unsharp=5:5:0.70:5:5:0")
         if options.film_grain:
-            filters.append("noise=alls=4:allf=t+u")
+            filters.append("noise=alls=10:allf=t+u")
         if options.vignette:
-            filters.append("vignette=PI/5")
+            filters.append("vignette=PI/3")
         if options.glow:
-            filters.append("gblur=sigma=1,eq=brightness=0.02:saturation=1.04")
+            filters.append("gblur=sigma=2,eq=brightness=0.06:saturation=1.10")
         if options.fade_in:
-            filters.append("fade=t=in:st=0:d=0.8")
+            filters.append("fade=t=in:st=0:d=1.2")
         if options.fade_out:
-            fade_start = max(0.0, duration - 0.8)
-            filters.append(f"fade=t=out:st={fade_start:.3f}:d=0.8")
+            fade_start = max(0.0, duration - 1.2)
+            filters.append(f"fade=t=out:st={fade_start:.3f}:d=1.2")
         video_bitrate = [] if options.bitrate == "Auto" else ["-b:v", f"{options.bitrate}k"]
         return [
             ffmpeg, "-y", "-hide_banner", "-loglevel", "error", "-progress", "pipe:1", "-nostats",
