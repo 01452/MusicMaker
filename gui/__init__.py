@@ -1,0 +1,1 @@
+"""MusicMaker user interface."""
