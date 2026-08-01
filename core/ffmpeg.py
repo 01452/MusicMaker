@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+import random
 import shutil
 from dataclasses import dataclass
 from pathlib import Path
@@ -75,25 +77,28 @@ class FFmpegCommandBuilder:
         filters: list[str] = []
         base = f"scale={options.width}:{options.height}:force_original_aspect_ratio=increase,crop={options.width}:{options.height}"
         if options.ken_burns:
-            # The input image is oversized before zoompan so it can crop smoothly at every frame.
-            zoom = "min(zoom+0.00035,1.18)"
-            if options.movement == "Zoom Out":
-                zoom = "if(eq(on,1),1.18,max(zoom-0.00035,1.0))"
-            elif options.movement == "Pan Left":
-                zoom = "1.08"
-            elif options.movement == "Pan Right":
-                zoom = "1.08"
-            elif options.movement == "Random":
-                zoom = "if(eq(on,1),1.0,min(zoom+0.00022,1.12))"
+            # zoompan emits a complete motion sequence for one still-image frame.
+            # Using d=total_frames is important: d=1 resets the motion on every
+            # repeated input frame and makes the image appear stationary.
+            total_frames = max(1, math.ceil(duration * options.fps))
+            movement = options.movement
+            if movement == "Random":
+                movement = random.choice(("Zoom In", "Zoom Out", "Pan Left", "Pan Right"))
+            progress = f"on/{total_frames}"
+            zoom = "1+0.18*" + progress
             pan_x = "(iw-iw/zoom)*0.50"
             pan_y = "(ih-ih/zoom)*0.50"
-            if options.movement == "Pan Left":
-                pan_x = "(iw-iw/zoom)*(1-on/(duration*fps))"
-            elif options.movement == "Pan Right":
-                pan_x = "(iw-iw/zoom)*(on/(duration*fps))"
+            if movement == "Zoom Out":
+                zoom = "1.18-0.18*" + progress
+            elif movement == "Pan Left":
+                zoom = "1.12"
+                pan_x = f"(iw-iw/zoom)*(1-{progress})"
+            elif movement == "Pan Right":
+                zoom = "1.12"
+                pan_x = f"(iw-iw/zoom)*{progress}"
             filters.append(
                 f"scale={options.width * 2}:{options.height * 2}:force_original_aspect_ratio=increase,"
-                f"crop={options.width * 2}:{options.height * 2},zoompan=z='{zoom}':x='{pan_x}':y='{pan_y}':d=1:s={options.width}x{options.height}:fps={options.fps}"
+                f"crop={options.width * 2}:{options.height * 2},zoompan=z='{zoom}':x='{pan_x}':y='{pan_y}':d={total_frames}:s={options.width}x{options.height}:fps={options.fps}"
             )
         else:
             filters.append(base)
