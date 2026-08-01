@@ -64,7 +64,9 @@ class EncoderWorker(QThread):
                     break
                 key, _, value = line.strip().partition("=")
                 if key == "out_time_ms":
-                    current_seconds = max(0.0, float(value) / 1_000_000.0)
+                    parsed_seconds = self._parse_progress_seconds(value)
+                    if parsed_seconds is not None:
+                        current_seconds = max(0.0, parsed_seconds)
                 elif key == "speed":
                     speed = self._parse_speed(value)
                 if key in {"out_time_ms", "speed", "progress"}:
@@ -102,6 +104,16 @@ class EncoderWorker(QThread):
             return float(value.rstrip("x"))
         except ValueError:
             return 0.0
+
+    @staticmethod
+    def _parse_progress_seconds(value: str) -> float | None:
+        """Convert FFmpeg progress time to seconds, ignoring sentinel values."""
+        if not value or value.upper() in {"N/A", "NA", "UNKNOWN"}:
+            return None
+        try:
+            return float(value) / 1_000_000.0
+        except ValueError:
+            return None
 
     @staticmethod
     def _friendly_error(stderr: str) -> str:
