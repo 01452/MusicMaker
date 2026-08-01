@@ -53,7 +53,7 @@ class EncoderWorker(QThread):
                 encoding="utf-8", errors="replace", bufsize=1,
             )
         except OSError as error:
-            self.failed.emit(f"Could not start FFmpeg: {error}")
+            self.failed.emit(f"Не удалось запустить FFmpeg: {error}")
             return
         current_seconds = 0.0
         speed = 0.0
@@ -81,13 +81,13 @@ class EncoderWorker(QThread):
                 LOGGER.error("FFmpeg failed (%s): %s", return_code, stderr.strip())
                 self.failed.emit(self._friendly_error(stderr))
             elif not self.output.exists():
-                self.failed.emit("FFmpeg finished without creating the output video.")
+                self.failed.emit("FFmpeg завершил работу, но видео не было создано.")
             else:
                 self.progress.emit(100, time.monotonic() - started, 0.0, speed, int(self.duration))
                 self.completed.emit(str(self.output))
         except (OSError, ValueError) as error:
             LOGGER.exception("Unexpected encoder error")
-            self.failed.emit(f"Encoding failed: {error}")
+            self.failed.emit(f"Ошибка создания видео: {error}")
 
     def _remove_partial_output(self) -> None:
         try:
@@ -107,9 +107,9 @@ class EncoderWorker(QThread):
     def _friendly_error(stderr: str) -> str:
         text = stderr.lower()
         if "permission denied" in text or "access is denied" in text:
-            return "Windows denied access to the output folder or file. Choose another folder."
+            return "Windows запретил доступ к папке или файлу. Выберите другую папку."
         if "invalid data" in text or "decode" in text:
-            return "FFmpeg could not decode one of the selected media files. The file may be corrupted."
+            return "FFmpeg не смог прочитать один из файлов. Возможно, файл повреждён."
         if "encoder" in text:
-            return "The selected video codec is unavailable in this FFmpeg build."
-        return "FFmpeg could not create the video. Check the input files and output folder."
+            return "Выбранный видеокодек недоступен в этой сборке FFmpeg."
+        return "FFmpeg не смог создать видео. Проверьте входные файлы и папку вывода."

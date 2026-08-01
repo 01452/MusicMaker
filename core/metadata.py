@@ -41,7 +41,7 @@ class MediaInspector:
         """Return image dimensions or raise a user-friendly ValueError."""
         image_path = Path(path)
         if image_path.suffix.lower() not in cls.IMAGE_EXTENSIONS:
-            raise ValueError("This image format is not supported. Use PNG, JPG, WEBP, or BMP.")
+            raise ValueError("Формат изображения не поддерживается. Используйте PNG, JPG, WEBP или BMP.")
         try:
             with Image.open(image_path) as image:
                 image.verify()
@@ -49,19 +49,19 @@ class MediaInspector:
                 return ImageInfo(image.width, image.height, image.mode)
         except (OSError, UnidentifiedImageError) as error:
             LOGGER.info("Image inspection failed for %s: %s", image_path, error)
-            raise ValueError("The selected image is corrupted or cannot be opened.") from error
+            raise ValueError("Выбранное изображение повреждено или не открывается.") from error
 
     @classmethod
     def inspect_audio(cls, path: str | Path) -> AudioInfo:
         """Return audio duration from Mutagen or raise a friendly ValueError."""
         audio_path = Path(path)
         if audio_path.suffix.lower() not in cls.AUDIO_EXTENSIONS:
-            raise ValueError("This audio format is not supported. Use MP3, WAV, FLAC, M4A, AAC, or OGG.")
+            raise ValueError("Формат аудио не поддерживается. Используйте MP3, WAV, FLAC, M4A, AAC или OGG.")
         try:
             audio = MutagenFile(audio_path)
             duration = float(audio.info.length) if audio and audio.info else 0.0
             if duration <= 0:
-                raise ValueError("Audio duration could not be determined.")
+                raise ValueError("Не удалось определить длительность аудиофайла.")
             title = audio_path.stem
             if audio and getattr(audio, "tags", None):
                 tag_value = audio.tags.get("TIT2") or audio.tags.get("title")
@@ -72,4 +72,4 @@ class MediaInspector:
             LOGGER.info("Audio inspection failed for %s: %s", audio_path, error)
             if isinstance(error, ValueError):
                 raise
-            raise ValueError("The selected audio is corrupted or cannot be opened.") from error
+            raise ValueError("Выбранный аудиофайл повреждён или не открывается.") from error

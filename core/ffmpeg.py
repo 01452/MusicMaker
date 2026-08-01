@@ -53,7 +53,7 @@ class FFmpegLocator:
         path_value = shutil.which("ffmpeg")
         if path_value:
             return path_value
-        raise FFmpegNotFoundError("FFmpeg is not installed or bundled with MusicMaker.")
+        raise FFmpegNotFoundError("FFmpeg не найден. Переустановите MusicMaker или добавьте ffmpeg.exe рядом с программой.")
 
 
 class FFmpegCommandBuilder:
@@ -70,7 +70,7 @@ class FFmpegCommandBuilder:
     ) -> list[str]:
         """Create an FFmpeg command using only direct subprocess arguments."""
         if options.width <= 0 or options.height <= 0 or options.fps <= 0:
-            raise FFmpegCommandError("Invalid video dimensions or frame rate.")
+            raise FFmpegCommandError("Некорректное разрешение или частота кадров.")
         video_codec = "libx265" if options.codec.upper() == "H265" else "libx264"
         filters: list[str] = []
         base = f"scale={options.width}:{options.height}:force_original_aspect_ratio=increase,crop={options.width}:{options.height}"

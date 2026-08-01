@@ -18,7 +18,7 @@ class ImagePreview(QWidget):
         super().__init__()
         self.setAcceptDrops(True)
         self._pixmap = QPixmap()
-        self.label = QLabel("Drop an image here\nor paste one from the clipboard")
+        self.label = QLabel("Перетащите изображение сюда\nили вставьте его из буфера обмена")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.label.setObjectName("previewLabel")
         layout = QVBoxLayout(self)
